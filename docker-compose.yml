@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  django:
+    build:
+      dockerfile: Dockerfile_django
+    container_name: django
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: cat_breeder/.env
+    volumes:
+      - static_volume:/static
+    networks:
+      - cat_breeder
+    restart: on-failure
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/proxy_params:/etc/nginx/proxy_params
+      - static_volume:/static
+    ports:
+      - "80:80"
+    networks:
+      - cat_breeder
+    restart: on-failure
+    depends_on:
+      - django
+      - angular
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: cat_breeder
+      POSTGRES_PASSWORD: _l1-4@g5+h
+      POSTGRES_DB: cat_breeder
+    ports:
+      - "5432:5432"
+    networks:
+      - cat_breeder
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-U", "cat_breeder" ]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+
+  angular:
+    build:
+      dockerfile: Dockerfile_angular
+    container_name: angular
+    ports:
+      - "4200:80"
+    networks:
+      - cat_breeder
+    restart: on-failure
+
+networks:
+  cat_breeder:
+
+volumes:
+  static_volume:
