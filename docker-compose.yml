@@ -5,6 +5,7 @@ services:
     build:
       dockerfile: Dockerfile_django
     container_name: django
+#    command: daphne -u /tmp/daphne.sock cat_breeder.asgi:application
     ports:
       - "8000:8000"
     depends_on:
@@ -48,6 +49,14 @@ services:
       interval: 5s
       retries: 5
       start_period: 10s
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - cat_breeder
 
   angular:
     build:

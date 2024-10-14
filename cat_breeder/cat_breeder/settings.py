@@ -38,7 +38,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
@@ -46,6 +46,9 @@ SIMPLE_JWT = {
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -53,12 +56,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'channels',
     'breeders',
-    'corsheaders',
+
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -66,7 +69,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = 'cat_breeder.urls'
@@ -87,6 +89,7 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = 'cat_breeder.asgi.application'
 WSGI_APPLICATION = 'cat_breeder.wsgi.application'
 
 
@@ -96,8 +99,8 @@ WSGI_APPLICATION = 'cat_breeder.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'defhunter'),
-        'USER': os.environ.get('POSTGRES_USER', 'defhunter'),
+        'NAME': os.environ.get('POSTGRES_DB', 'cat_breeder'),
+        'USER': os.environ.get('POSTGRES_USER', 'cat_breeder'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', '_l1-4@g5+h'),
         'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
         'PORT': os.environ.get('POSTGRES_PORT', '5432'),
@@ -123,6 +126,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 AUTH_USER_MODEL = 'breeders.User'
 
@@ -149,7 +160,8 @@ CORS_ALLOWS_CREDENTIALS = True
 STATIC_URL = 'static/'
 STATIC_ROOT = '/static/'
 
-ASGI_APPLICATION = 'cat_breeder.asgi.application'
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

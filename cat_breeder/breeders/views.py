@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import viewsets, permissions, status
 from rest_framework import viewsets, permissions
 from rest_framework.generics import GenericAPIView
@@ -7,6 +9,13 @@ from rest_framework.response import Response
 from .models import Cat
 from .serializers import CatSerializer, LoginSerializer, UserRegisterSerializer
 
+logger = logging.getLogger(__name__)
+
+# Setting basic config for logger
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(filename)s:%(lineno)d #%(levelname)-8s '
+           '[%(asctime)s] - %(name)s - %(message)s')
 
 class RegisterView(GenericAPIView):
     serializer_class = UserRegisterSerializer
@@ -39,7 +48,26 @@ class CatViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        logger.info(self.request.user)
         return Cat.objects.filter(owner=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        # Add CORS headers
+        response['Access-Control-Allow-Origin'] = 'http://localhost:4200'
+        response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        logger.info(request)
+        return response
+
+    def options(self, request, *args, **kwargs):
+        response = Response(status=status.HTTP_200_OK)
+        # Add CORS headers for preflight response
+        response['Access-Control-Allow-Origin'] = 'http://localhost:4200'
+        response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        logger.info(request)
+        return response
